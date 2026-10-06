@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flagstaff Kickball League</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="#top">⚽ Flagstaff Kickball</a>
+      <nav>
+        <a href="#news">News</a>
+        <a href="#calendar">Calendar</a>
+        <a href="#signup" class="btn small">Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <h1>Kick. Run. Repeat.</h1>
+        <p>A fun, co-ed, all-skill-levels kickball league in Flagstaff, AZ.</p>
+        <a href="#signup" class="btn">Join the League</a>
+      </div>
+    </section>
+
+    <section id="news" class="wrap">
+      <h2>News Board</h2>
+      <div id="newsList" class="cards"></div>
+    </section>
+
+    <section id="calendar" class="wrap">
+      <h2>Event Calendar</h2>
+      <div class="cal-controls">
+        <button id="prevMonth" aria-label="Previous month">‹</button>
+        <h3 id="monthLabel"></h3>
+        <button id="nextMonth" aria-label="Next month">›</button>
+      </div>
+      <div class="legend">
+        <span class="dot game"></span> Game
+        <span class="dot practice"></span> Practice
+        <span class="dot social"></span> Social
+      </div>
+      <div id="calGrid" class="cal-grid"></div>
+      <h3>Upcoming Events</h3>
+      <ul id="eventList" class="event-list"></ul>
+    </section>
+
+    <section id="signup" class="wrap">
+      <h2>Sign Up</h2>
+      <form id="signupForm" class="form" novalidate>
+        <div class="row">
+          <label>First name<input name="firstName" required></label>
+          <label>Last name<input name="lastName" required></label>
+        </div>
+        <div class="row">
+          <label>Email<input type="email" name="email" required></label>
+          <label>Phone (optional)<input type="tel" name="phone"></label>
+        </div>
+        <div class="row">
+          <label>Age<input type="number" name="age" min="18" max="99" required></label>
+          <label>Shirt size
+            <select name="shirt" required>
+              <option value="">Select…</option>
+              <option>XS</option><option>S</option><option>M</option>
+              <option>L</option><option>XL</option><option>2XL</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Registering as
+            <select name="regType" required>
+              <option value="individual">Individual (place me on a team)</option>
+              <option value="team">Full team</option>
+            </select>
+          </label>
+          <label>Team name (if applicable)<input name="team"></label>
+        </div>
+        <label>Experience level
+          <select name="experience">
+            <option>Never played</option>
+            <option>Casual</option>
+            <option>Competitive</option>
+          </select>
+        </label>
+        <label>Anything else we should know?<textarea name="notes" rows="3"></textarea></label>
+        <label class="check"><input type="checkbox" name="waiver" required> I understand kickball involves physical activity and I participate at my own risk. (18+ league)</label>
+        <p id="formMsg" class="msg" role="status"></p>
+        <button type="submit" class="btn">Submit Registration</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">© <span id="year"></span> Flagstaff Kickball League · Questions? Reach out to the organizers.</div>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
+

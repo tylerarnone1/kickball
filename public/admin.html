@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Admin – Flagstaff Kickball</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .admin-list { list-style:none; padding:0; display:grid; gap:.5rem; }
+    .admin-list li { background:#fff; padding:.6rem 1rem; border-radius:8px; display:flex; justify-content:space-between; gap:1rem; align-items:center; }
+    .admin-list button { background:#999; color:#fff; border:0; border-radius:6px; padding:.3rem .7rem; cursor:pointer; }
+    .admin-list button:hover { background:var(--red); }
+    .table-wrap { overflow-x:auto; } table { border-collapse:collapse; background:#fff; width:100%; font-size:.85rem; }
+    th, td { border:1px solid #ddd; padding:.4rem .6rem; text-align:left; white-space:nowrap; }
+  </style>
+</head>
+<body>
+  <header class="site-header"><div class="wrap"><a class="logo" href="/">← Flagstaff Kickball</a><span style="color:#ddd">Admin</span></div></header>
+  <main class="wrap" style="padding-top:2rem">
+    <form id="login" class="form" style="max-width:360px">
+      <label>Admin password<input type="password" id="pw" required></label>
+      <button class="btn">Log in</button>
+      <p id="loginMsg" class="msg err"></p>
+    </form>
+
+    <div id="panel" hidden>
+      <h2>Post News</h2>
+      <form id="newsForm" class="form">
+        <div class="row"><label>Title<input name="title" required></label><label>Date<input type="date" name="date" required></label></div>
+        <label>Body<textarea name="body" rows="3" required></textarea></label>
+        <button class="btn">Post</button>
+      </form>
+      <ul id="newsAdmin" class="admin-list"></ul>
+
+      <h2 style="margin-top:2rem">Add Event</h2>
+      <form id="eventForm" class="form">
+        <div class="row"><label>Title<input name="title" required></label><label>Date<input type="date" name="date" required></label></div>
+        <div class="row"><label>Time<input name="time" placeholder="10:00 AM"></label>
+          <label>Type<select name="type"><option>game</option><option>practice</option><option>social</option></select></label></div>
+        <label>Location<input name="location"></label>
+        <label>Details<input name="details"></label>
+        <button class="btn">Add</button>
+      </form>
+      <ul id="eventsAdmin" class="admin-list"></ul>
+
+      <h2 style="margin-top:2rem">Sign-ups (<span id="count">0</span>)</h2>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Name</th><th>Email</th><th>Phone</th><th>Age</th><th>Shirt</th><th>Type</th><th>Team</th><th>Exp.</th><th>Notes</th><th></th>
+      </tr></thead><tbody id="signups"></tbody></table></div>
+    </div>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    let pw = sessionStorage.getItem("pw") || "";
+    const api = async (method, url, body) => {
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json", "x-admin-password": pw }, body: body && JSON.stringify(body) });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      return j;
+    };
+    async function refresh() {
+      const [news, events, signups] = await Promise.all([api("GET", "/api/news"), api("GET", "/api/events"), api("GET", "/api/admin/signups")]);
+      $("newsAdmin").innerHTML = news.map((n) => `<li><span>${esc(n.date)} – ${esc(n.title)}</span><button data-del="news/${n._id}">Delete</button></li>`).join("");
+      $("eventsAdmin").innerHTML = events.map((e) => `<li><span>${esc(e.date)} – ${esc(e.title)} (${esc(e.type)})</span><button data-del="events/${e._id}">Delete</button></li>`).join("");
+      $("count").textContent = signups.length;
+      $("signups").innerHTML = signups.map((s) => `<tr><td>${esc(s.firstName)} ${esc(s.lastName)}</td><td>${esc(s.email)}</td><td>${esc(s.phone)}</td><td>${esc(s.age)}</td><td>${esc(s.shirt)}</td><td>${esc(s.regType)}</td><td>${esc(s.team)}</td><td>${esc(s.experience)}</td><td>${esc(s.notes)}</td><td><button data-del="signups/${s._id}">✕</button></td></tr>`).join("");
+    }
+    async function enter() {
+      await api("GET", "/api/admin/check");
+      $("login").hidden = true; $("panel").hidden = false;
+      await refresh();
+    }
+    $("login").onsubmit = async (e) => {
+      e.preventDefault(); pw = $("pw").value;
+      try { await enter(); sessionStorage.setItem("pw", pw); } catch (err) { $("loginMsg").textContent = "Incorrect password."; }
+    };
+    document.addEventListener("click", async (e) => {
+      const t = e.target.dataset.del;
+      if (t && confirm("Delete this item?")) { await api("DELETE", "/api/admin/" + t); refresh(); }
+    });
+    for (const [id, path] of [["newsForm", "news"], ["eventForm", "events"]]) {
+      $(id).onsubmit = async (e) => {
+        e.preventDefault();
+        try { await api("POST", "/api/admin/" + path, Object.fromEntries(new FormData(e.target))); e.target.reset(); refresh(); }
+        catch (err) { alert(err.message); }
+      };
+    }
+    if (pw) enter().catch(() => {});
+  </script>
+</body>
+</html>
